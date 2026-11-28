@@ -14,6 +14,7 @@ USER=root                   # User for file permissions on forgejo binary
 GROUP=git                   # Group for file permissions on forgejo binary
 INIT_TYPE=systemd           # Specify init script type (only systemd now)
 SERVICE=forgejo		    # Specify the name of systemd script
+LINK=0                      # 0: generate symlink, 2: move, 3: copy
 PRUNE=1                     # If TRUE, script will delete older versions
 RC=0                        # If TRUE, script will download Release Candidates
 DEBUG=1                     # If TRUE, debug messages are printed to STDOUT
@@ -101,8 +102,16 @@ if [ $NEW_VER != $CUR_VER ]; then
       ;;
     *)
   esac
-  # Update the symlink at $DIR/forgejo to pint to latest forgejo binary
-  ln -sf $TMP_DIR/forgejo-$NEW_VER-$ARCH $DIR/forgejo
+  # Update forgejo to latest forgejo binary
+  if [ $LINK -eq 0 ]; then
+    ln -sf $TMP_DIR/forgejo-$NEW_VER-$ARCH $DIR/forgejo
+  elif [ $LINK -eq 1 ]; then
+    cp $TMP_DIR/forgejo-$NEW_VER-$ARCH $DIR/forgejo
+  elif [ $LINK -eq 2 ]; then
+    mv -f $TMP_DIR/forgejo-$NEW_VER-$ARCH $DIR/forgejo
+  else
+    echo "$LINK has to be 0, 1 or 2"
+  fi
   # Start the forgejo service
   case $INIT_TYPE in
     systemd)
