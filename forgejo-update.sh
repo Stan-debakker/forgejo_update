@@ -5,6 +5,7 @@
 
 
 DIR=/usr/local/bin          # Set location of forgejo binary on local system
+TMP_DIR={DIR}/bin           # Set location for download of forgejo
 URL=https://codeberg.org/forgejo/forgejo/releases
 ARCH=linux-amd64            # Set architecture type:
                             # darwin-10.6.386 darwin-10.6-amd64 linux-386
@@ -69,11 +70,11 @@ if [ $NEW_VER != $CUR_VER ]; then
   binbase="https://codeberg.org/forgejo/forgejo/releases/download/v${NEW_VER}/"
   binurl="https://codeberg.org/forgejo/forgejo/releases/download/v${NEW_VER}/${binname}.xz"
   echo "Downloading $binurl..."
-  cd "$DIR/bin"
-  ( cd $DIR/bin && curl --connect-timeout 10 --silent --show-error --fail --location -O "$binurl" )
+  cd "$TMP_DIR"
+  ( cd $TMP_DIR && curl --connect-timeout 10 --silent --show-error --fail --location -O "$binurl" )
 
   # Verify the checksum of the latest forgejo compressed binary
-  SHA_CHECK=$(cd $DIR/bin && curl -s -L "${binurl}.sha256" | sha256sum -c | cut -d " " -f 2)
+  SHA_CHECK=$(cd $TMP_DIR && curl -s -L "${binurl}.sha256" | sha256sum -c | cut -d " " -f 2)
   if [ $SHA_CHECK = "OK" ]; then
     if [ $DEBUG -eq 1 ]; then
       echo "SHA256 verified"
@@ -90,9 +91,9 @@ if [ $NEW_VER != $CUR_VER ]; then
   xz --decompress --force "${binname}.xz"
 
   # Set USER/GROUP ownership for new forgejo binary
-  chown $USER:$GROUP $DIR/bin/forgejo-$NEW_VER-$ARCH
+  chown $USER:$GROUP $TMP_DIR/forgejo-$NEW_VER-$ARCH
   # Set permissions for new forgejo binary (rwxr-x---)
-  chmod 0750 $DIR/bin/forgejo-$NEW_VER-$ARCH
+  chmod 0750 $TMP_DIR/forgejo-$NEW_VER-$ARCH
   # Stop the forgejo service
   case $INIT_TYPE in
     systemd)
@@ -101,7 +102,7 @@ if [ $NEW_VER != $CUR_VER ]; then
     *)
   esac
   # Update the symlink at $DIR/forgejo to pint to latest forgejo binary
-  ln -sf $DIR/bin/forgejo-$NEW_VER-$ARCH $DIR/forgejo
+  ln -sf $TMP_DIR/forgejo-$NEW_VER-$ARCH $DIR/forgejo
   # Start the forgejo service
   case $INIT_TYPE in
     systemd)
@@ -110,8 +111,8 @@ if [ $NEW_VER != $CUR_VER ]; then
     *)
   esac
   if [ $PRUNE -eq 1 ]; then
-    find $DIR/bin/ -maxdepth 1 -type f ! -newer $DIR/bin/forgejo-$CUR_VER-$ARCH ! \
-    -wholename $DIR/bin/forgejo-$CUR_VER-$ARCH -delete
+    find $TMP_DIR/ -maxdepth 1 -type f ! -newer $TMP_DIR/forgejo-$CUR_VER-$ARCH ! \
+    -wholename $TMP_DIR/forgejo-$CUR_VER-$ARCH -delete
   fi
   if [ $DEBUG -eq 1 ]; then
     echo "forgejo upgraded to v$NEW_VER"
