@@ -4,7 +4,7 @@
 # Assumes use of systemd for Forgejo start/stop
 
 
-DIR=/usr/local/bin/forgejo   # Set location of forgejo binary on local system
+DIR=/usr/local/bin          # Set location of forgejo binary on local system
 URL=https://codeberg.org/forgejo/forgejo/releases
 ARCH=linux-amd64            # Set architecture type:
                             # darwin-10.6.386 darwin-10.6-amd64 linux-386
@@ -12,7 +12,7 @@ ARCH=linux-amd64            # Set architecture type:
 USER=root                   # User for file permissions on forgejo binary
 GROUP=git                   # Group for file permissions on forgejo binary
 INIT_TYPE=systemd           # Specify init script type (only systemd now)
-SERVICE=git		    # Specify the name of systemd script
+SERVICE=forgejo		    # Specify the name of systemd script
 PRUNE=1                     # If TRUE, script will delete older versions
 RC=0                        # If TRUE, script will download Release Candidates
 DEBUG=1                     # If TRUE, debug messages are printed to STDOUT
